@@ -2,8 +2,15 @@
 " Sway Wang <sway.khwang@gmail.com>
 " Fork from  https://github.com/vgod/vimrc
 
-
 " For pathogen.vim: auto load all plugins in .vim/bundle
+
+set tags=./tags;/
+
+let g:pathogen_disabled = []
+if !has('gui_running')
+    call add(g:pathogen_disabled, 'powerline')
+endif
+
 call pathogen#runtime_append_all_bundles()
 call pathogen#helptags()
 
@@ -18,10 +25,12 @@ set nu
 
 let python_highlight_all = 1
 
+filetype off          " necessary to make ftdetect work on Linux
+syntax on
 filetype on           " Enable filetype detection
 filetype indent on    " Enable filetype-specific indenting
 filetype plugin on    " Enable filetype-specific plugins
-
+fixdel
 
 " auto reload vimrc when editing it
 autocmd! bufwritepost .vimrc source ~/.vimrc
@@ -187,9 +196,6 @@ cmap cd. lcd %:p:h
 " PROGRAMMING SHORTCUTS
 "--------------------------------------------------------------------------- 
 
-" Ctrl-[ jump out of the tag stack (undo Ctrl-])
-map <C-[> <ESC>:po<CR>
-
 " ,g generates the header guard
 map <leader>g :call IncludeGuard()<CR>
 fun! IncludeGuard()
@@ -197,10 +203,10 @@ fun! IncludeGuard()
    let guard = '_' . substitute(toupper(basename), '\.', '_', "H")
    call append(0, "#ifndef " . guard)
    call append(1, "#define " . guard)
+   call append(3, "namespace {")
+   call append( line("$") - 2, "} // namespace" . guard)
    call append( line("$"), "#endif // for #ifndef " . guard)
 endfun
-
-
 
 " Enable omni completion. (Ctrl-X Ctrl-O)
 autocmd FileType html,markdown setlocal omnifunc=htmlcomplete#CompleteTags
@@ -219,49 +225,9 @@ if has("autocmd") && exists("+omnifunc")
               \	endif
 endif
 
-
 " make CSS omnicompletion work for SASS and SCSS
 autocmd BufNewFile,BufRead *.scss             set ft=scss.css
 autocmd BufNewFile,BufRead *.sass             set ft=sass.css
-                           
-
-"--------------------------------------------------------------------------- 
-" PLUGIN SETTINGS
-"--------------------------------------------------------------------------- 
-
-" ------- vim-latex - many latex shortcuts and snippets {
-
-" IMPORTANT: win32 users will need to have 'shellslash' set so that latex
-" can be called correctly.
-set shellslash
-set grepprg=grep\ -nH\ $*
-" OPTIONAL: Starting with Vim 7, the filetype of empty .tex files defaults to
-" 'plaintex' instead of 'tex', which results in vim-latex not being loaded.
-" The following changes the default filetype back to 'tex':
-let g:tex_flavor='latex'
-
-"}
-
-
-" --- AutoClose - Inserts matching bracket, paren, brace or quote 
-" fixed the arrow key problems caused by AutoClose
-if !has("gui_running")	
-   set term=linux
-   imap OA <ESC>ki
-   imap OB <ESC>ji
-   imap OC <ESC>li
-   imap OD <ESC>hi
-
-   nmap OA k
-   nmap OB j
-   nmap OC l
-   nmap OD h
-endif
-
-
-
-" --- Command-T
-let g:CommandTMaxHeight = 15
 
 " --- SuperTab
 let g:SuperTabDefaultCompletionType = "context"
@@ -281,12 +247,11 @@ let g:tagbar_autofocus = 1
 " --- NERDTree
 nnoremap <Leader>tt :NERDTree<CR>
 
+" --- SnipMate
+let g:snipMateAllowMatchingDot = 0
 
-nnoremap <Leader>ff :FufFile!<CR>
 set t_Co=256          " 256 color mode
 
-" set mouse=a, let you be able to change cursor by mouse
-"set mouse=a
 
 " make your scrolling to control up and down
 set ttymouse=xterm
@@ -298,6 +263,9 @@ set ttymouse=xterm
 :map! <M-Esc>[64~ <S-MouseDown>
 :map <M-Esc>[65~ <S-MouseUp>
 :map! <M-Esc>[65~ <S-MouseUp>]
+
+map <A-]> :vsp <CR>:exec("tag ".expand("<cword>"))<CR>
+map <C-\> :tab split<CR>:exec("tag ".expand("<cword>"))<CR>
 
 colorscheme sway_wombat256
 set cursorline
